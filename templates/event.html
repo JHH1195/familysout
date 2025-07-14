@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ event.title }} – FamilienRada</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-900">
+  <!-- Header -->
+  <header class="flex items-center justify-between p-4 bg-white shadow">
+    <a href="/" class="text-2xl font-bold text-blue-600">FamilienRada</a>
+    <nav>
+      <a href="/" class="text-sm text-gray-600 hover:underline">Neue Suche</a>
+    </nav>
+  </header>
+
+  <!-- Inhalt -->
+  <main class="flex flex-col md:flex-row h-[calc(100vh-64px)]">
+    
+    <!-- Linke Seite: Scrollbare Eventliste -->
+    <aside class="w-full md:w-1/4 border-r overflow-y-auto bg-white p-4">
+      <h2 class="text-lg font-semibold mb-4">Weitere Vorschläge</h2>
+      <ul class="space-y-3">
+        {% for e in events %}
+          <li>
+            <a href="{{ url_for('event_detail', event_id=e.id, q=request.args.get('q'), location=request.args.get('location'), category=request.args.get('category')) }}"
+               class="block p-3 rounded-lg border transition hover:bg-blue-50
+                      {% if e.id == event.id %} bg-blue-100 border-blue-400 text-blue-800 {% else %} border-gray-300 {% endif %}">
+              <span class="block font-medium text-sm truncate">{{ e.title }}</span>
+              <span class="text-xs text-gray-500">{{ e.date }} – {{ e.location }}</span>
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    </aside>
+
+    <!-- Rechte Seite: Eventdetails -->
+    <section class="w-full md:w-3/4 p-6 overflow-y-auto">
+      <h1 class="text-3xl font-bold mb-2">{{ event.title }}</h1>
+      <p class="text-sm text-gray-500 mb-4">{{ event.date }} – {{ event.location }}</p>
+
+      {% if event.category %}
+        <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded mb-4">{{ event.category }}</span>
+      {% endif %}
+
+      {% if event.description %}
+        <p class="mb-6">{{ event.description }}</p>
+      {% endif %}
+
+      {% if event.maps_url %}
+        <iframe src="{{ event.maps_url }}" class="w-full h-64 rounded border" allowfullscreen="" loading="lazy"></iframe>
+      {% endif %}
+
+      <!-- Platzhalter für Buchung -->
+      <div class="mt-8">
+        <h2 class="text-xl font-semibold mb-2">Buchung (bald verfügbar)</h2>
+        <p class="text-gray-600">In Kürze kannst du hier direkt buchen oder Kontakt aufnehmen.</p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

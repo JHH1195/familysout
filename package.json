@@ -1,0 +1,24 @@
+{
+  "name": "veranstaltungs-crawler",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JHH1995/veranstaltungs-crawler.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/JHH1995/veranstaltungs-crawler/issues"
+  },
+  "homepage": "https://github.com/JHH1995/veranstaltungs-crawler#readme",
+  "devDependencies": {
+    "tailwindcss": "^4.1.11"
+  }
+}

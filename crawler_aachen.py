@@ -1,31 +1,34 @@
-import requests
+# crawler_aachen.py
 from bs4 import BeautifulSoup
-import json
+import requests
+from models import Event
 
-url = "https://www.aachen.de/in-aachen-leben/kultur/kulturkalender/"
-resp = requests.get(url)
-soup = BeautifulSoup(resp.text, "html.parser")
+def crawler_aachen():
+    print("🔍 Crawler Aachen wird ausgeführt...")
 
-events = []
+    url = "https://www.aachen.de/DE/stadt_buerger/freizeit_kultur/familie_kinder/Veranstaltungen/index.html"
+    res = requests.get(url, timeout=10)
+    soup = BeautifulSoup(res.text, "html.parser")
 
-# Jeder Event scheint in li-Element: class 'teaser-item'
-for item in soup.select("li.teaser-item"):
-    title_tag = item.select_one("h3.teaser-headline")
-    date_tag = item.select_one("div.teaser-info time")
-    location_tag = item.select_one("div.teaser-info span.teaser-location")
+    events = []
+    blocks = soup.select("div.teaser")
 
-    title = title_tag.get_text(strip=True) if title_tag else "Kein Titel"
-    date = date_tag.get_text(strip=True) if date_tag else "Kein Datum"
-    location = location_tag.get_text(strip=True) if location_tag else "Unbekannt"
+    print(f"🔍 {len(blocks)} Blöcke gefunden")
 
-    events.append({
-        "title": title,
-        "date": date,
-        "location": location
-    })
+    for block in blocks:
+        title = block.select_one("h3")
+        desc = block.select_one("p")
 
-with open("events_aachen.json", "w", encoding="utf-8") as f:
-    json.dump(events, f, indent=2, ensure_ascii=False)
+        event = Event(
+            title=title.get_text(strip=True) if title else "Ohne Titel",
+            description=desc.get_text(strip=True) if desc else "",
+            date="Unbekannt",
+            location="Aachen",
+            category="Familie",
+            source_url=url,
+            source_name="Stadt Aachen"
+        )
+        events.append(event)
 
-print(f"{len(events)} Events gespeichert.")
-
+    print(f"✅ {len(events)} Events von Aachen gespeichert.")
+    return events

@@ -1,47 +1,57 @@
+# crawler_kingkalli.py
 from playwright.sync_api import sync_playwright
-import json
 import re
+from models import Event
 
-def run():
+def crawler_kingkalli():
+    print("🔍 Crawler KingKalli wird ausgeführt...")
+
+    events = []
+
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page()
         page.goto("https://kingkalli.de/events/", timeout=60000)
 
-        page.wait_for_selector("article.type-tribe_events")
+        try:
+            page.wait_for_selector("article.type-tribe_events", timeout=15000)
+        except:
+            print("⚠️ Keine Events gefunden")
+            return []
 
-        events = []
         items = page.query_selector_all("article.type-tribe_events")
+        print(f"🔍 {len(items)} Event-Artikel gefunden")
 
         for item in items:
-            title_el = item.query_selector("h3 a")
-            date_el = item.query_selector("span.tribe-event-date-start")
-            location_el = item.query_selector("div.tribe-events-venue-details")
+            try:
+                title_el = item.query_selector("h3 a")
+                date_el = item.query_selector("span.tribe-event-date-start")
+                location_el = item.query_selector("div.tribe-events-venue-details")
 
-            title = title_el.inner_text().strip() if title_el else "Kein Titel"
-            date = date_el.inner_text().strip() if date_el else "Kein Datum"
+                title = title_el.inner_text().strip() if title_el else "Kein Titel"
+                date = date_el.inner_text().strip() if date_el else "Unbekannt"
 
-            # Ort aus Titel extrahieren
-            match = re.search(r"\sin\s([A-ZÄÖÜ][a-zäöüß]+(?:\s[A-ZÄÖÜ][a-zäöüß]+)?)", title)
-            location = match.group(1) if match else (
-                location_el.inner_text().strip() if location_el else "Unbekannt"
-            )
+                match = re.search(r"\sin\s([A-ZÄÖÜ][a-zäöüß]+(?:\s[A-ZÄÖÜ][a-zäöüß]+)?)", title)
+                location = match.group(1) if match else (
+                    location_el.inner_text().strip() if location_el else "Unbekannt"
+                )
 
-            maps_query = location.replace(" ", "+")
-            maps_url = f"https://www.google.com/maps/search/{maps_query}"
+                event = Event(
+                    title=title,
+                    description="",
+                    date=date,
+                    location=location,
+                    maps_url=f"https://www.google.com/maps/search/{location.replace(' ', '+')}",
+                    category="Familie",
+                    source_url="https://kingkalli.de/events/",
+                    source_name="KingKalli"
+                )
 
-            events.append({
-                "title": title,
-                "date": date,
-                "location": location,
-                "maps_url": maps_url
-            })
+                events.append(event)
+            except Exception as e:
+                print(f"⚠️ Fehler beim Parsen eines Events: {e}")
 
-        with open("events_kingkalli.json", "w", encoding="utf-8") as f:
-            json.dump(events, f, indent=2, ensure_ascii=False)
-
-        print(f"{len(events)} Events gespeichert.")
         browser.close()
 
-if __name__ == "__main__":
-    run()
+    print(f"✅ {len(events)} Events von KingKalli gespeichert.")
+    return events
