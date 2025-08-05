@@ -1,0 +1,11 @@
+version: "3.9"
+services:
+  python_app:
+    build: ./python_app
+    ports:
+      - "5001:5000"
+    volumes:
+      - ./python_app:/app
+    env_file:
+      - ./python_app/.env
+

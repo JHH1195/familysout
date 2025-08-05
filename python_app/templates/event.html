@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}{{ event.title }} – FamilienRadar{% endblock %}
+
+{% block content %}
+<main class=" mx-auto px-4 pt-6 pb-28 sm:pb-36">
+
+  <!-- 📸 Eventbild -->
+  {% if event.image_url %}
+  <img src="{{ event.image_url }}" alt="{{ event.title }}" class="w-full h-64 md:h-96 object-cover rounded-xl shadow border dark:border-gray-700 mb-6">
+{% else %}
+  <div class="w-full h-64 md:h-96 flex items-center justify-center bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-300 rounded-xl shadow border dark:border-gray-700 mb-6">
+    Kein Bild verfügbar
+  </div>
+{% endif %}
+
+
+  <!-- 🧾 Titel, Datum, Ort -->
+<div class="mb-4">
+  <h1 class="text-3xl font-bold text-flotti-primary dark:text-white">{{ event.title }}</h1>
+  <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+    {{ readable_date }} – {{ event.location or "Ort unbekannt" }}
+  </p>
+</div>
+
+
+  <!-- 🔖 Badges -->
+  <div class="flex flex-wrap gap-2 text-sm mb-6">
+    {% if event.is_free %}
+      <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full font-medium">Kostenlos</span>
+    {% elif event.price %}
+      <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full font-medium">{{ event.price }} €</span>
+    {% endif %}
+    {% if event.is_outdoor %}
+      <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full font-medium">Draußen</span>
+    {% endif %}
+    {% if event.age_group %}
+      <span class="bg-gray-100 text-gray-800 px-3 py-1 rounded-full font-medium">{{ event.age_group }}</span>
+    {% endif %}
+    {% if event.category %}
+      <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full font-medium">{{ event.category }}</span>
+    {% endif %}
+  </div>
+
+  <!-- 💡 Warum du es lieben wirst -->
+  <section class="mb-8">
+    <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-3">Warum du es lieben wirst</h2>
+    <ul class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <li class="flex items-start gap-3">
+        <svg class="w-6 h-6 text-flotti-accent" fill="none" stroke="currentColor" stroke-width="2"
+          viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round"
+          d="M5.121 17.804A4 4 0 017 7h10a4 4 0 011.879 7.596l-5.379 5.379a1 1 0 01-1.414 0l-5.379-5.379z"/></svg>
+        <span>Familienfreundlich und mit Herz gestaltet</span>
+      </li>
+      <li class="flex items-start gap-3">
+        <svg class="w-6 h-6 text-flotti-accent" fill="none" stroke="currentColor" stroke-width="2"
+          viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round"
+          d="M12 11c0-1.105-.895-2-2-2s-2 .895-2 2 .895 2 2 2 2-.895 2-2z"/></svg>
+        <span>Geeignet für jedes Wetter</span>
+      </li>
+    </ul>
+  </section>
+
+  <!-- 📝 Beschreibung -->
+  {% if event.description %}
+  <section class="mb-8 prose dark:prose-invert">
+    <h2>Details</h2>
+    <p>{{ event.description }}</p>
+  </section>
+  {% endif %}
+
+  <!-- 🗺️ Karte -->
+  {% if event.maps_url %}
+  <section class="mb-12">
+    <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-3">Anfahrt</h2>
+    <iframe src="{{ event.maps_url }}" class="w-full h-64 rounded-xl border dark:border-gray-700 shadow"
+      allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+  </section>
+  {% endif %}
+
+</main>
+
+<!-- 📌 Sticky Buchung (zentriert, 50% breit) -->
+<div class="fixed bottom-40 left-1/2 transform -translate-x-1/2 z-50">
+  <button id="calendarDropdownButton"
+    class="px-5 py-2 bg-flotti-accent text-flotti-primary font-semibold rounded-lg shadow-lg hover:bg-flotti-highlight transition">
+    📅 Zum Kalender hinzufügen
+  </button>
+
+
+  <div id="calendarDropdown"
+    class="hidden absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50">
+    <a href="/event/{{ event.id }}/download.ics"
+      class="block px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">iCal / Outlook</a>
+    <a href="{{ google_calendar_url }}"
+      target="_blank"
+      class="block px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">Google Kalender</a>
+    <a href="https://timetreeapp.com/" target="_blank"
+      class="block px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700">TimeTree öffnen</a>
+  </div>
+</div>
+
+<script>
+  const toggleBtn = document.getElementById("calendarDropdownButton");
+  const dropdown = document.getElementById("calendarDropdown");
+
+  toggleBtn.addEventListener("click", () => {
+    dropdown.classList.toggle("hidden");
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!toggleBtn.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.classList.add("hidden");
+    }
+  });
+</script>
+
+
+{% endblock %}

@@ -1,0 +1,311 @@
+
+{% extends "base.html" %}
+{% block title %}Startseite – FamilienRadar{% endblock %}
+
+{% block content %}
+<style>
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-100px);
+    }
+  }
+
+  .floating-card {
+    animation: float 10s ease-in-out;
+  }
+</style>
+
+<!-- Hero Section mit Farbverlauf -->
+<section class="relative min-h-screen bg-gradient-to-b from-[#fffafa] to-[#fb5c4f]">
+  <div class="relative z-10 flex flex-col items-center justify-center h-full p-40 px-4 text-center">
+    <h1 class="text-4xl text-flotti-primary text-5xl font-bold font-flotti mb-8 drop-shadow-lg">
+      {{ t.title }}
+    </h1>
+
+<form action="/results" method="GET" class="bg-flotti-primary backdrop-blur-md rounded-xl shadow-2xl p-4 w-full max-w-5xl flex flex-wrap md:flex-nowrap items-end gap-4">
+
+  <!-- 🏷️ Thema -->
+  <div class="relative flex-1 min-w-[140px]">
+    <select name="query" class="peer w-full border-b border-flotti-accent bg-transparent pt-4 pb-1.5 text-sm text-flotti-white appearance-none outline-none focus:border-white">
+      <option value="" disabled selected hidden>Was interessiert euch?</option>
+      <option value="Basteln">Basteln</option>
+      <option value="Theater">Theater</option>
+      <option value="Tiere">Tiere</option>
+      <option value="Musik">Musik</option>
+      <option value="Musik">Spielplatz</option>
+      <option value="Musik">Schwimmen</option>
+    </select>
+    <label class="pointer-events-none absolute left-0 -top-1.5 text-sm text-flotti-white transition-all peer-focus:-top-1.5 peer-focus:text-sm peer-focus:text-gray-400">Thema</label>
+  </div>
+
+  <!-- 📍 Ort -->
+  <div class="relative flex-1 min-w-[140px]">
+    <input type="text" name="location" placeholder="z. B. Hamburg" class="peer w-full border-b border-flotti-accent bg-transparent pt-4 pb-1.5 text-sm text-flotti-white placeholder-transparent outline-none focus:border-white" />
+    <label class="pointer-events-none absolute left-0 -top-1.5 text-sm text-flotti-white transition-all peer-placeholder-shown:top-2 peer-placeholder-shown:text-base peer-placeholder-shown:text-flotti-white peer-focus:-top-1.5 peer-focus:text-sm peer-focus:text-gray-400">Ort</label>
+  </div>
+
+ <!-- 🧩 Filter -->
+<div class="flex flex-wrap gap-2 flex-1 min-w-[160px]">
+
+  <!-- 🎭 Exklusiv: Drinnen & Draußen -->
+  {% for name, label, valtype in [("indoor", "Indoor", "radio"), ("outdoor", "Outdoor", "radio")] %}
+    <label class="cursor-pointer">
+      <input type="{{ valtype }}" name="location_type" value="{{ name }}" class="hidden peer" />
+      <span class="px-2 py-1 text-sm rounded-full bg-white text-gray-800
+        transition transform
+        hover:-translate-y-0.5 hover:shadow
+        peer-checked:bg-gradient-to-r peer-checked:from-green-400 peer-checked:to-emerald-700
+        peer-checked:text-white peer-checked:shadow-lg peer-checked:scale-105">
+        {{ label }}
+      </span>
+    </label>
+  {% endfor %}
+
+  <!-- ✅ Normale Filter -->
+  {% for name, label in [("free", "Kostenlos"), ("senior_friendly", "Großeltern"), ("new", "Neu"), ("action", "Actiongeladen")] %}
+    <label class="cursor-pointer">
+      <input type="checkbox" name="{{ name }}" value="1" class="hidden peer" />
+      <span class="px-2 py-1 text-sm rounded-full bg-white text-gray-800
+        transition transform
+        hover:-translate-y-0.5 hover:shadow
+        peer-checked:bg-gradient-to-r peer-checked:from-green-400 peer-checked:to-emerald-700
+        peer-checked:text-white peer-checked:shadow-lg peer-checked:scale-105">
+        {{ label }}
+      </span>
+    </label>
+  {% endfor %}
+
+</div>
+
+
+  <!-- 🔍 Button als Chat-Style -->
+  <button type="submit" class="shrink-0 bg-flotti-accent text-flotti-primary p-2.5 rounded-full shadow hover:bg-[#fffafa] transition">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M12 5l7 7-7 7" />
+    </svg>
+  </button>
+</form>
+
+
+
+
+
+
+  </div>
+    <!-- Familienbilder Sektion -->
+<div class="mt-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10 px-4 max-w-6xl mx-auto">
+
+  <!-- Spielplatz -->
+  <div class="floating-card rounded-xl overflow-hidden shadow-lg bg-flotti-primary dark:bg-gray-800" style="animation-delay: 0s;">
+    <img src="{{ url_for('static', filename='img/spielplatz.jpg') }}" alt="Kinderspielplatz" class="w-full h-64 object-cover">
+    <div class="p-4">
+      <h3 class="text-lg font-semibold text-flotti-accent dark:text-gray-100">Spielplatz</h3>
+      <p class="text-sm text-flotti-white dark:text-gray-300">Spielerisches Burgenbauen mit Mama und Papa.</p>
+    </div>
+  </div>
+
+  <!-- Museumsbesuch -->
+  <div class="floating-card rounded-xl overflow-hidden shadow-lg bg-flotti-primary dark:bg-gray-800" style="animation-delay: 1s;">
+    <img src="{{ url_for('static', filename='img/museum.jpg') }}" alt="Familien-Museum" class="w-full h-64 object-cover">
+    <div class="p-4">
+      <h3 class="text-lg font-semibold text-flotti-accent dark:text-gray-100">Museumsbesuch</h3>
+      <p class="text-sm text-flotti-white dark:text-gray-300">Kunst entdecken und gemeinsam staunen.</p>
+    </div>
+  </div>
+
+  <!-- Hobby -->
+  <div class="floating-card rounded-xl overflow-hidden shadow-lg bg-flotti-primary dark:bg-gray-800" style="animation-delay: 2s;">
+    <img src="{{ url_for('static', filename='img/hobby.jpg') }}" alt="Hobby entdecken" class="w-full h-64 object-cover">
+    <div class="p-4">
+      <h3 class="text-lg font-semibold text-flotti-accent dark:text-gray-100">Hobby</h3>
+      <p class="text-sm text-flotti-white dark:text-gray-300">Ein neues Hobby entdecken.</p>
+    </div>
+  </div>
+
+</div>
+
+
+</section>
+<!-- 🙌 Testimonials -->
+<section class="relative bg-flotti-primary dark:bg-gray-900 text-flotti-accent dark:text-flotti-primary min-h-[70vh] flex flex-col justify-center px-6">
+  <div class="max-w-6xl mx-auto w-full flex flex-col md:flex-row items-center gap-10">
+
+    <!-- 📣 Headline & Thumbnails -->
+    <div class="w-full md:w-1/3">
+      <h2 class="text-3xl sm:text-4xl font-bold mb-6 leading-tight">Was Familien über uns sagen</h2>
+      <div class="flex space-x-3">
+        {% for t in testimonials %}
+        <button data-index="{{ loop.index0 }}" class="testimonial-thumb w-12 h-12 rounded-full overflow-hidden ring-2 ring-flotti-primary focus:outline-none focus:ring-4 transition">
+          <img src="{{ url_for('static', filename=t.img.split('static/')[1]) }}" alt="{{ t.name }}" class="w-full h-full object-cover">
+        </button>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- 💬 Testimonial Text -->
+    <div class="w-full md:w-2/3">
+      <div id="testimonial-slider" class="relative bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg min-h-[220px]">
+        {% for t in testimonials %}
+        <div class="testimonial-slide {% if not loop.first %}hidden{% endif %}" data-index="{{ loop.index0 }}">
+          <p class="text-lg italic mb-4">"{{ t.text }}"</p>
+          <p class="text-sm uppercase tracking-wide font-semibold text-flotti-accent">{{ t.name }}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- 🔁 Auto-Switch Script -->
+  <script>
+    const slides = document.querySelectorAll('.testimonial-slide');
+    const thumbs = document.querySelectorAll('.testimonial-thumb');
+    let currentIndex = 0;
+
+    function showSlide(index) {
+      slides.forEach((s, i) => {
+        s.classList.toggle('hidden', i !== index);
+        thumbs[i].classList.toggle('ring-flotti-primary', i === index);
+        thumbs[i].classList.toggle('ring-gray-400', i !== index);
+      });
+      currentIndex = index;
+    }
+
+    thumbs.forEach((btn, idx) => {
+      btn.addEventListener('click', () => showSlide(idx));
+    });
+
+    setInterval(() => {
+      const next = (currentIndex + 1) % slides.length;
+      showSlide(next);
+    }, 10000);
+  </script>
+</section>
+
+<!-- 🗺️ Kartenbereich mit Geolocation & CTA -->
+<section class="relative min-h-[70vh] bg-white dark:bg-gray-900 overflow-hidden">
+
+  <!-- 🌍 Map-Container mit Blur -->
+  <div id="map-wrapper" class="absolute inset-0 z-0 transition-all duration-700 blur-sm scale-[1.01] pointer-events-none">
+    <div id="start-map" class="w-full h-full"></div>
+  </div>
+
+  <!-- 📣 Overlay mit Button -->
+  <div class="relative z-10 flex flex-col justify-center items-center h-[70vh] text-center px-4">
+    <h2 class="text-3xl font-bold text-gray-800 dark:text-flotti-primary mb-4">Entdecke Events in deiner Nähe</h2>
+    <button id="activateMap"
+            class="bg-flotti-accent text-flotti-primary px-6 py-2 rounded-xl shadow-md hover:bg-[#fffafa] transition">
+      In meiner Region umsehen
+    </button>
+  </div>
+
+  <!-- 📦 Leaflet einbinden -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script>
+    let map;
+
+    document.addEventListener("DOMContentLoaded", function () {
+      // Karte initialisieren (vorerst inaktiv)
+      map = L.map('start-map', {
+        zoomControl: false,
+        dragging: false,
+        scrollWheelZoom: false,
+        doubleClickZoom: false,
+        boxZoom: false,
+        keyboard: false,
+        touchZoom: false
+      }).setView([51.1657, 10.4515], 6); // Deutschland-Mitte
+
+      // Layer hinzufügen
+      L.tileLayer('https://{s}.tile.openstreetmap.de/{z}/{x}/{y}.png', {
+        maxZoom: 18,
+        attribution: '&copy; OpenStreetMap'
+      }).addTo(map);
+    });
+
+    document.getElementById("activateMap").addEventListener("click", function () {
+      const wrapper = document.getElementById("map-wrapper");
+
+      // Blur & Pointer entsperren
+      wrapper.classList.remove("blur-sm", "scale-[1.01]", "pointer-events-none");
+
+      // Karte interaktiv machen
+      map.scrollWheelZoom.enable();
+      map.touchZoom.enable();
+      map.doubleClickZoom.enable();
+      map.dragging.enable();
+      map.boxZoom.enable();
+      map.keyboard.enable();
+      map.zoomControl.addTo(map);
+
+      // Standort ermitteln
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(pos => {
+          const lat = pos.coords.latitude;
+          const lon = pos.coords.longitude;
+          map.setView([lat, lon], 13);
+
+          // Marker für Standort
+          L.circleMarker([lat, lon], {
+            radius: 8,
+            fillColor: "#7c3aed", // flotti-primary
+            color: "#fff",
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.9
+          }).addTo(map).bindPopup("Du bist hier").openPopup();
+        }, err => {
+          alert("Standort konnte nicht ermittelt werden.");
+        });
+      }
+
+      // Button ausblenden
+      this.style.display = "none";
+    });
+  </script>
+</section>
+
+<!-- 🙋 FAQ Sektion -->
+<section id="faq" class="scroll-mt-20 bg-flotti-background dark:bg-gray-900 py-16 px-4">
+  <div class="max-w-4xl mx-auto text-center mb-10">
+    <h2 class="text-3xl font-bold text-flotti-primary dark:text-flotti-primary">Häufige Fragen</h2>
+    <p class="text-gray-600 dark:text-gray-400 mt-2">Alles, was du über Flotti wissen musst.</p>
+  </div>
+
+  <div class="max-w-3xl mx-auto space-y-4">
+    {% set faqs = [
+      {'question': 'Kostet die Nutzung etwas?', 'answer': 'Nein! Du kannst alle Veranstaltungen kostenlos durchsuchen. Manche Events sind kostenpflichtig – das steht aber immer dabei.'},
+      {'question': 'Wie aktuell sind die Events?', 'answer': 'Wir aktualisieren unsere Datenbank mehrmals täglich mit einem automatisierten Crawler.'},
+      {'question': 'Kann ich auch eigene Events einstellen?', 'answer': 'Ja, über „Event erstellen“ im Menü kannst du Events vorschlagen – wir prüfen sie redaktionell.'},
+      {'question': 'Brauche ich ein Konto?', 'answer': 'Nicht zwingend. Für Favoriten, Kalender-Sync & Premium-Vorteile brauchst du ein kostenloses Konto.'}
+    ] %}
+    {% for faq in faqs %}
+    <details class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 group open:shadow-md transition">
+      <summary class="cursor-pointer font-semibold text-gray-800 dark:text-flotti-primary group-open:text-flotti-primary">
+        {{ faq.question }}
+      </summary>
+      <p class="text-gray-600 dark:text-gray-300 mt-2">{{ faq.answer }}</p>
+    </details>
+    {% endfor %}
+  </div>
+</section>
+
+
+<!-- 💎 Abo CTA auf Startseite -->
+<section class="bg-flotti-primary text-flotti-white py-40 px-6">
+  <div class="max-w-5xl mx-auto text-center">
+    <h2 class="text-3xl font-bold mb-4">Mehr Möglichkeiten mit Flotti+</h2>
+    <p class="text-lg mb-6">Speichere Favoriten, erhalte Empfehlungen & mehr – bald verfügbar.</p>
+    <a href="{{ url_for('preise') }}"
+       class="inline-block px-6 py-3 bg-flotti-accent text-flotti-primary font-semibold rounded-lg shadow-lg hover:bg-gray-100 transition">
+      Preise & Vorteile ansehen
+    </a>
+  </div>
+</section>
+
+
+{% endblock %}

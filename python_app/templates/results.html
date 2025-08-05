@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}Ergebnisse – Flotti{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-10">
+
+  <!-- 🔍 Filterleiste -->
+  <form method="GET" action="{{ url_for('suchergebnisse') }}"
+        class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 mb-10 grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 gap-4">
+
+    <!-- 📍 Ort -->
+    <input type="text" name="location" value="{{ location_filter }}"
+           placeholder="Ort" onchange="this.form.submit()"
+           class="w-full px-4 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-white" />
+
+    <!-- 🗓️ Datum -->
+    <input type="date" name="date" value="{{ date_filter }}"
+           onchange="this.form.submit()"
+           class="w-full px-4 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-white" />
+
+    <!-- 🎯 Kategorie -->
+    <select name="category" onchange="this.form.submit()"
+            class="w-full px-4 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-white">
+      <option value="">Alle Kategorien</option>
+      {% for cat in categories %}
+        <option value="{{ cat }}" {% if category_filter == cat %}selected{% endif %}>{{ cat }}</option>
+      {% endfor %}
+    </select>
+
+    <!-- 🔄 Zurücksetzen -->
+    <a href="{{ url_for('suchergebnisse') }}"
+       class="w-full text-center py-2 px-4 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition self-center">
+      Zurücksetzen
+    </a>
+  </form>
+
+  {% if events %}
+  <!-- 📋 Ergebnisliste -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for event in events %}
+    <a href="{{ url_for('event_detail', event_id=event.id) }}"
+       class="block rounded-xl overflow-hidden bg-flotti-primary dark:bg-gray-800 shadow-lg hover:shadow-lg transition focus:outline-none focus:ring-2 focus:ring-flotti-primary">
+
+      <!-- 📸 Eventbild oder Platzhalter -->
+      {% if event.image_url %}
+      <img src="{{ event.image_url }}" alt="{{ event.title }}" class="w-full h-48 object-cover" />
+      {% else %}
+      <div class="w-full h-48 bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-300">
+        Kein Bild verfügbar
+      </div>
+      {% endif %}
+
+      <!-- 📄 Inhalt -->
+      <div class="p-4">
+        <h2 class="text-lg font-bold text-flotti-white dark:text-white mb-1">{{ event.title }}</h2>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">
+          {{ event.date }} – {{ event.location or "Ort unbekannt" }}
+        </p>
+
+        <p class="text-sm text-white dark:text-gray-300 line-clamp-3 mb-3">{{ event.description }}</p>
+
+        <!-- 🔖 Badges -->
+        <div class="flex flex-wrap gap-2 text-xs text-white">
+          {% if event.price == 0 or event.is_free %}
+          <span class="bg-green-500 rounded-full px-2 py-1">Kostenlos</span>
+          {% elif event.price %}
+          <span class="bg-purple-600 rounded-full px-2 py-1">{{ event.price }} €</span>
+          {% endif %}
+          {% if event.is_outdoor %}
+          <span class="bg-blue-500 rounded-full px-2 py-1">Draußen</span>
+          {% endif %}
+          {% if event.age_group %}
+          <span class="bg-gray-500 rounded-full px-2 py-1">{{ event.age_group }}</span>
+          {% endif %}
+          {% if event.category %}
+          <span class="bg-yellow-600 rounded-full px-2 py-1">{{ event.category }}</span>
+          {% endif %}
+        </div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+
+  <!-- 📍 Karte (optional) -->
+  <div class="mt-16">
+    <h2 class="text-xl font-bold text-flotti-primary dark:text-white mb-4">Karte</h2>
+    <div id="map" class="w-full h-[500px] rounded-xl shadow border border-gray-200 dark:border-gray-700"></div>
+    <div id="map-data" class="hidden">
+      {% for event in events %}
+        {% if event.lat and event.lon %}
+        <div class="marker"
+             data-lat="{{ event.lat }}"
+             data-lng="{{ event.lon }}"
+             data-title="{{ event.title | e }}"
+             data-date="{{ event.date }}"
+             data-url="{{ url_for('event_detail', event_id=event.id) }}">
+        </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <script>
+    const map = L.map('map').setView([51.1657, 10.4515], 6);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.de/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap',
+      maxZoom: 18,
+    }).addTo(map);
+
+    const flottiIcon = L.icon({
+      iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-violet.png',
+      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41]
+    });
+
+    const markers = document.querySelectorAll('#map-data .marker');
+    const allMarkers = [];
+
+    markers.forEach(el => {
+      const lat = parseFloat(el.dataset.lat);
+      const lng = parseFloat(el.dataset.lng);
+      const title = el.dataset.title;
+      const date = el.dataset.date;
+      const url = el.dataset.url;
+
+      const marker = L.marker([lat, lng], {icon: flottiIcon}).addTo(map)
+        .bindPopup(`<strong>${title}</strong><br>${date}<br><a href="${url}" class="text-flotti-primary underline">Mehr erfahren</a>`);
+
+      allMarkers.push(marker);
+    });
+
+    if (allMarkers.length > 0) {
+      const group = L.featureGroup(allMarkers);
+      map.fitBounds(group.getBounds(), {padding: [20, 20]});
+    }
+  </script>
+
+  {% else %}
+  <p class="text-gray-600 dark:text-gray-300 mt-6">Keine Veranstaltungen gefunden.</p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+/* === Basis-Setup fÃ¼r TailwindCSS Standalone === */
+
+/* ✅ Font-Import */
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@200..1000&display=swap');
+
+/* ✅ Custom Properties */
+:root {
+  --flotti-primary: #1f2148;
+  --flotti-secondary: #ffb7a3;
+  --flotti-accent: #fb5c4f;
+  --flotti-highlight: #f2e205;
+  --flotti-background: #fffafa;
+  --flotti-white: #fffafa;
+  --font-flotti: 'Nunito Sans', sans-serif;
+}
+
+/* ✅ Tailwind-like Reset */
+*, ::before, ::after {
+  box-sizing: border-box;
+  border-width: 0;
+  border-style: solid;
+  border-color: currentColor;
+}
+
+/* ✅ Global Styles */
+body {
+  margin: 0;
+  font-family: var(--font-flotti);
+  background-color: var(--flotti-background);
+  color: var(--flotti-primary);
+}
+
+
+/* Beispielklassen */
+.bg-flotti-primary     { background-color: var(--flotti-primary); }
+.bg-flotti-secondary   { background-color: var(--flotti-secondary); }
+.bg-flotti-accent      { background-color: var(--flotti-accent); }
+.bg-flotti-highlight   { background-color: var(--flotti-highlight); }
+.bg-flotti-background  { background-color: var(--flotti-background); }
+
+.text-flotti-primary   { color: var(--flotti-primary); }
+.text-flotti-accent    { color: var(--flotti-accent); }
+
+.font-fredoka          { font-family: var(--font-fredoka); }

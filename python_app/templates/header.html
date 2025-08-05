@@ -1,0 +1,135 @@
+{# templates/header.html #}
+<header class="sticky top-0 z-30 bg-[#fffafa] dark:bg-gray-900">
+  <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+
+    <!-- 🔷 Logo mit Icon -->
+<a href="{{ url_for('index') }}" class="flex items-center gap-3">
+  
+  <h1 class="text-flotti-primary text-4xl md:text-5xl font-bold font-flotti drop-shadow-lg">
+    Familysout 
+  </h1>
+</a>
+
+
+    <!-- 🔍 Suche nur wenn NICHT Startseite -->
+    {% if not request.path == '/' %}
+    <form action="{{ url_for('suchergebnisse') }}" method="get" class="hidden sm:block w-full max-w-md mx-6">
+      <input
+        type="text"
+        name="q"
+        placeholder="Suche nach Ort oder Begriff"
+        value="{{ query if query else '' }}"
+        class="w-full px-4 py-2 rounded-lg border border-flotti-primary dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring focus:ring-purple-300" />
+    </form>
+    {% endif %}
+
+    <!-- ☰ Menü-Button & User Links -->
+    <div class="flex items-center gap-4">
+
+    {% if current_user.is_authenticated %}
+    <!-- 👤 Mein Profil -->
+    <a href="{{ url_for('profil') }}" class="text-sm text-flotti-primary dark:text-gray-300 hover:text-[#fb5c4f] transition">
+      Mein Profil
+    </a>
+
+    <!-- 🔓 Logout -->
+    <a href="{{ url_for('logout') }}" class="text-sm text-flotti-primary dark:text-gray-300 hover:text-[#fb5c4f] transition">
+      Logout
+    </a>
+    {% else %}
+    <!-- 🔐 Login -->
+    <a href="{{ url_for('login') }}" class="text-sm text-flotti-primary dark:text-gray-300 hover:text-[#fb5c4f] transition">
+      Login
+    </a>
+    {% endif %}
+    <!-- ☰ Menü-Button -->
+    <button id="menuToggle" class="text-gray-700 dark:text-gray-300 hover:text-[#fb5c4f] dark:hover:text-purple-400 focus:outline-none text-2xl sm:text-3xl">
+    ☰
+    </button>
+  </div>
+
+
+  </div>
+
+<!-- 🌐 Overlay & Panel -->
+<div id="menuOverlay" class="fixed inset-0 z-40 hidden">
+  <div id="menuPanel"
+       class="absolute top-0 right-0 w-72 h-full bg-flotti-primary dark:bg-gray-900 p-6 shadow-lg rounded-l-2xl flex flex-col gap-4
+              transform translate-x-full transition-transform duration-300 ease-in-out">
+
+    <!-- Menülinks -->
+    <a href="/favorites"
+       class="flex items-center gap-3 text-flotti-white hover:bg-[#fb5c4f] hover:text-[#1f2148] px-4 py-2 rounded-full transition">
+      <span>Meine Favoriten</span>
+    </a>
+
+    <a href="/event-erstellen"
+       class="flex items-center gap-3 text-flotti-white hover:bg-[#fb5c4f] hover:text-[#1f2148] px-4 py-2 rounded-full transition">
+      <span>Event erstellen</span>
+    </a>
+    <a href="#faq" id="menuFaqLink"
+       class="flex items-center gap-3 text-flotti-white hover:bg-[#fb5c4f] hover:text-[#1f2148] px-4 py-2 rounded-full transition">
+      <span>FAQ</span>
+    </a>
+    <a href="{{ request.path }}?lang=de"
+        class="flex items-center gap-2 hover:text-flotti-accent">🇩🇪 DE</a>
+    <a href="{{ request.path }}?lang=en"
+      class="flex items-center gap-2 hover:text-flotti-accent">🇬🇧 EN</a>
+
+  </div>
+</div>
+
+
+<!-- 🧠 Menü + FAQ JavaScript -->
+<script>
+  const toggle = document.getElementById("menuToggle");
+  const overlay = document.getElementById("menuOverlay");
+  const panel = document.getElementById("menuPanel");
+  const faqLink = document.getElementById("menuFaqLink");
+
+  function openMenu() {
+    overlay.classList.remove("hidden");
+    setTimeout(() => {
+      panel.classList.remove("translate-x-full");
+    }, 10);
+  }
+
+  function closeMenu() {
+    panel.classList.add("translate-x-full");
+    setTimeout(() => {
+      overlay.classList.add("hidden");
+    }, 300); // muss zur Transition passen
+  }
+
+  function toggleMenu() {
+    const isOpen = !overlay.classList.contains("hidden");
+    if (isOpen) {
+      closeMenu();
+    } else {
+      openMenu();
+    }
+  }
+
+  toggle?.addEventListener("click", toggleMenu);
+
+  overlay?.addEventListener("click", (e) => {
+    if (!panel.contains(e.target)) {
+      closeMenu();
+    }
+  });
+
+  // 📍 Scroll + Menü schließen bei Klick auf FAQ-Link
+  faqLink?.addEventListener("click", (e) => {
+    e.preventDefault();
+    closeMenu();
+
+    const target = document.getElementById("faq");
+    if (target) {
+      setTimeout(() => {
+        target.scrollIntoView({ behavior: "smooth" });
+      }, 350); // nach Menü-Schließen scrollen
+    }
+  });
+</script>
+
+
