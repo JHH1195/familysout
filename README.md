@@ -1,6 +1,11 @@
 # FamilySout – Veranstaltungs-Crawler 🗓️
 
-**FamilySout** ist eine Flask-basierte Web-App mit integriertem Crawler zur Erfassung und Verwaltung von Veranstaltungen aus verschiedenen Quellen – lokal oder online. Ziel ist eine zentrale Oberfläche für mehrere Nutzer*innen, mit Fokus auf Familien-Events.
+**Familysout** ist eine Fullstack-App zur automatisierten Sammlung von Familienveranstaltungen.  
+Bestehend aus:
+- 🐍 Python-Backend (FastAPI)
+- ⚛️ React-Frontend (Vite)
+- 🌀 Reverse Proxy mit **Traefik**
+- 🐳 Docker-Setup für lokalen & produktiven Einsatz
 
 ---
 
