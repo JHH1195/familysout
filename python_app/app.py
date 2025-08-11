@@ -508,6 +508,11 @@ def admin_diag():
         "db_driver": str(engine.url.drivername)
     }
 
+@app.get("/healthz")
+def healthz():
+    return "ok", 200
+
+
 # =========================================================
 # 🏁 Start
 # =========================================================
