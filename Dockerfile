@@ -7,9 +7,11 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
     tesseract-ocr \
+    tesseract-ocr-deu \
     build-essential \
     poppler-utils \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
+
 
 # Copy application code
 COPY python_app/ /app/
