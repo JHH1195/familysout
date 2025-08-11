@@ -1,36 +1,50 @@
 services:
-  traefik:
-    image: traefik:v3.0
-    command:
-      - "--api.dashboard=true"
-      - "--providers.docker=true"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.letsencrypt.acme.email=deine-mail@example.com"
-      - "--certificatesresolvers.letsencrypt.acme.storage=/acme.json"
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./traefik/traefik.yml:/traefik.yml:ro
-      - ./traefik/acme.json:/acme.json
-
-  backend:
+  python_app:
     build: ./python_app
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=Host(`api.localhost`)"
-      - "traefik.http.routers.backend.entrypoints=web"
-    expose:
-      - "5000"
+      - "traefik.http.routers.python_app.rule=PathPrefix(`/api`)"
+      - "traefik.http.routers.python_app.entrypoints=web"
+      - "traefik.http.services.python_app.loadbalancer.server.port=5000"
+    env_file:
+      - ./python_app/.env
+    depends_on:
+      - db
+    volumes:
+      - ./python_app:/app
 
   frontend:
     build: ./frontend
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=Host(`localhost`)"
+      - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
       - "traefik.http.routers.frontend.entrypoints=web"
-    expose:
-      - "80"
+      - "traefik.http.services.frontend.loadbalancer.server.port=80"
+    depends_on:
+      - python_app
+
+  traefik:
+    image: traefik:v3.0
+    command:
+      - "--api.dashboard=true"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+
+  db:
+    image: postgres:16
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

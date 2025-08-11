@@ -1,12 +1,33 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Float, create_engine
+import os
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Boolean,
+    DateTime,
+    Float,
+    create_engine,
+)
 from sqlalchemy.ext.declarative import declarative_base
-from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.orm import sessionmaker
+from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 from flask_login import UserMixin
+from dotenv import load_dotenv
 
+# 🔁 .env laden
+load_dotenv()
+
+# 🧱 Base definieren
 Base = declarative_base()
 
+# 📦 Datenbank-Verbindung
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///events.db")
+engine = create_engine(DATABASE_URL)
+Session = sessionmaker(bind=engine)
+
+
+# 🗂 Event-Modell
 class Event(Base):
     __tablename__ = "events"
 
@@ -20,27 +41,29 @@ class Event(Base):
     category = Column(String, default="Unbekannt")
     source_url = Column(String)
     source_name = Column(String)
-    lat = Column(Float)  # 🆕 Latitude
-    lon = Column(Float)  # 🆕 Longitude
-    price = Column(Float)            # Preis falls bekannt
-    is_free = Column(Boolean)        # kostenlos
-    is_outdoor = Column(Boolean)     # draußen
-    age_group = Column(String) 
+    lat = Column(Float)
+    lon = Column(Float)
+    price = Column(Float)
+    is_free = Column(Boolean)
+    is_outdoor = Column(Boolean)
+    age_group = Column(String)
 
+
+# 📚 Quellen-Modell
 class Quelle(Base):
     __tablename__ = "quellen"
 
     id = Column(Integer, primary_key=True)
     name = Column(String)
     url = Column(String, unique=True)
-    typ = Column(String)       # z. B. "playwright", "rss", "html"
-    stadt = Column(String)     # z. B. "Aachen"
-    aktiv = Column(Boolean)    # True = aktiv nutzen
-    status = Column(String, default="pending")  # "pending", "success", "error"
+    typ = Column(String)
+    stadt = Column(String)
+    aktiv = Column(Boolean)
+    status = Column(String, default="pending")
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
-
+# 👤 Benutzer-Modell
 class User(Base, UserMixin):
     __tablename__ = "users"
 
@@ -50,13 +73,10 @@ class User(Base, UserMixin):
     firstname = Column(String, nullable=False)
     lastname = Column(String, nullable=False)
     city = Column(String, nullable=True)
-    image_url = Column(String, nullable=True)  # ✅ Profilbild
-    is_premium = Column(Boolean, default=False)  # ✅ Flotti+
-
-    # Stripe & Abo
+    image_url = Column(String, nullable=True)
+    is_premium = Column(Boolean, default=False)
     stripe_customer_id = Column(String)
     stripe_subscription_id = Column(String)
-    is_premium = Column(Boolean, default=False)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -66,9 +86,3 @@ class User(Base, UserMixin):
 
     def __repr__(self):
         return f"<User {self.email}>"
-
-   
-# DB-Verbindung (lokal, SQLite-Datei)
-engine = create_engine("sqlite:///events.db")
-Base.metadata.create_all(engine)
-Session = sessionmaker(bind=engine)
