@@ -1,18 +1,38 @@
 # See https://fly.io/docs/app-guides/continuous-deployment-with-github-actions/
-
 name: Fly Deploy
+
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
+  workflow_dispatch: {}   # manuell startbar
+
 jobs:
   deploy:
     name: Deploy app
     runs-on: ubuntu-latest
-    concurrency: deploy-group    # optional: ensure only one action runs at a time
+    concurrency:
+      group: fly-deploy-${{ github.ref }}
+      cancel-in-progress: true
+    permissions:
+      contents: read
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: flyctl deploy --remote-only
+        with:
+          version: 1.2.17
+
+      # optionaler Check – hilft beim Debuggen, kann auch weg
+      - name: Check app status (optional)
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: flyctl status || true
+
+      - name: Deploy to Fly
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: flyctl deploy --remote-only
+        # Falls eure Files in Unterordnern liegen:
+        # run: flyctl deploy --remote-only --config ./fly.toml --dockerfile ./Dockerfile
+        # working-directory: .

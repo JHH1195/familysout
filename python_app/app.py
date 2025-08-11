@@ -1,49 +1,78 @@
 # 📦 Imports & Konfiguration
 from dotenv import load_dotenv
 load_dotenv()
-import os
-import re
-import pytesseract
-import stripe
-import locale
-import urllib.parse
-import io
+import os, re, pytesseract, stripe, locale, urllib.parse, io
 from datetime import datetime
 from PIL import Image
-from flask import Flask, render_template, request, g, redirect, url_for, flash, jsonify, send_file
+from flask import Flask, send_from_directory, render_template, request, g, redirect, url_for, flash, jsonify, send_file, abort
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import or_, cast, String, create_engine
-from models import Event, Session, User
-from flask import g
+from sqlalchemy import or_, cast, String  # create_engine nicht mehr nötig
+# KEIN Session-Import aus models:
+from models import Event, User
 from ics import Calendar, Event as ICS_Event
 from urllib.parse import quote
 
-# 📁 Setup: Datenbank & Session
-engine = create_engine("sqlite:///events.db")
-Session = sessionmaker(bind=engine)
-session = Session()
+from werkzeug.middleware.proxy_fix import ProxyFix
+from db import engine, SessionLocal  # <- unsere DB-Factory
+Session = SessionLocal               # Alias beibehalten
 
-# ✅ Admin-User automatisch anlegen
-existing_user = session.query(User).filter_by(email="admin@flotti.de").first()
-admin = session.query(User).filter_by(email="admin@flotti.de").first()
-if admin and not admin.is_premium:
-    admin.is_premium = True
-    session.commit()
-    print("✅ Admin hat jetzt Flotti+")
-if not existing_user:
-    user = User(email="admin@flotti.de", firstname="Flotti", lastname="Admin", city="Flottistadt")
-    user.set_password("flottipass")
-    session.add(user)
-    session.commit()
-    print("✅ Admin-Nutzer wurde neu angelegt.")
-else:
-    print(f"ℹ️ Admin-Nutzer existiert bereits: {existing_user.email}")
-
-# 🚀 Flask-App initialisieren
-app = Flask(__name__)
+# Eine App-Instanz, nicht zwei:
+app = Flask(__name__, template_folder="templates", static_folder="static")
 app.secret_key = os.getenv("SECRET_KEY", "flottikarotti")
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1, x_prefix=1)
+
+# Persistente Uploads (Fly-Volume)
+UPLOAD_FOLDER = os.getenv("UPLOAD_DIR", "/data/uploads")
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+
+@app.get("/uploads/<path:filename>")
+def serve_upload(filename):
+    return send_from_directory(app.config["UPLOAD_FOLDER"], filename, conditional=True)
+
+@app.get("/healthz")
+def healthz():
+    return "ok", 200
+
+@app.after_request
+def add_hsts(resp):
+    resp.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
+    return resp
+
+# WICHTIG: Sessions pro Request aufräumen
+@app.teardown_appcontext
+def remove_session(exc=None):
+    Session.remove()
+
+# ✅ Admin-User automatisch anlegen (nur lokal/ohne Fly-Maschine)
+if os.getenv("FLY_MACHINE_ID") is None:
+    s = Session()
+    try:
+        existing_user = s.query(User).filter_by(email="admin@flotti.de").first()
+        admin = existing_user
+        if admin and not admin.is_premium:
+            admin.is_premium = True
+            s.commit()
+            print("✅ Admin hat jetzt Flotti+")
+        if not existing_user:
+            user = User(email="admin@flotti.de", firstname="Flotti", lastname="Admin", city="Flottistadt")
+            user.set_password("flottipass")
+            s.add(user); s.commit()
+            print("✅ Admin-Nutzer wurde neu angelegt.")
+        else:
+            print(f"ℹ️ Admin-Nutzer existiert bereits: {existing_user.email}")
+    finally:
+        s.close()
+
+@app.teardown_appcontext
+def remove_session(exc=None):
+    Session.remove()
+
+# --- Stripe-Konfig aus Env ---
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
+STRIPE_PRICE_ID = os.getenv("STRIPE_PRICE_ID", "price_ABC123")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
 
 # 🔐 Login-Manager
 login_manager = LoginManager()
@@ -55,10 +84,6 @@ def load_user(user_id):
     session = Session()
     return session.query(User).get(int(user_id))
 
-# 📂 Upload-Ordner
-UPLOAD_FOLDER = "static/uploads"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # 🌍 Lokale Zeit- und Sprachformate
 try:
@@ -560,7 +585,7 @@ def vorgaben():
 def stripe_webhook():
     payload = request.data
     sig_header = request.headers.get('stripe-signature')
-    endpoint_secret = "whsec_..."
+    endpoint_secret = STRIPE_WEBHOOK_SECRET
 
     try:
         event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
@@ -586,7 +611,45 @@ def stripe_webhook():
 @app.context_processor
 def inject_year():
     return {"current_year": datetime.now().year}
+@app.post("/ingest/batch")
+def ingest_batch():
+    token = request.headers.get("X-Task-Token")
+    if token != os.getenv("CRAWLER_TOKEN"):
+        abort(401)
 
+    payload = request.get_json(force=True, silent=False)
+    if not isinstance(payload, list):
+        return jsonify({"error": "Body muss eine JSON-Liste von Events sein"}), 400
+
+    s = Session()
+    saved = 0
+    try:
+        for e in payload:
+            title = (e.get("title") or "").strip()
+            date  = (e.get("date") or "").strip()
+            if not title or not date:
+                continue
+
+            evt = Event(
+                title=title,
+                description=(e.get("description") or "")[:1000],
+                date=date,  # ISO (YYYY-MM-DD)
+                location=e.get("location") or "",
+                image_url=e.get("image_url") or "",
+                source_name=e.get("source_name") or "crawler",
+                source_url=e.get("source_url") or "",
+                category=e.get("category") or "Crawler",
+            )
+            s.add(evt)
+            saved += 1
+        s.commit()
+        return jsonify({"status": "ok", "saved": saved}), 200
+    except Exception as ex:
+        s.rollback()
+        return jsonify({"error": str(ex)}), 500
+    finally:
+        s.close()
 # 🏁 Start der App
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    # Für lokales Debuggen; Fly nutzt Gunicorn (siehe Dockerfile)
+    app.run(host="0.0.0.0", port=5000, debug=True)

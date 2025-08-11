@@ -1,24 +1,27 @@
-# fly.toml app configuration file generated for veranstaltungs-crawler-frosty-cloud-8887 on 2025-08-05T21:54:44+02:00
-#
-# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
-#
-
-app = 'veranstaltungs-crawler-frosty-cloud-8887'
-primary_region = 'ams'
+ app = "veranstaltungs-crawler-frosty-cloud-8887"
+primary_region = "ams"
 
 [build]
-  dockerfile = "python_app/Dockerfile"
-  context = "python_app"
+  dockerfile = "Dockerfile"
+  context = "."
 
 [http_service]
-  internal_port = 5000
+  internal_port = 8080
   force_https = true
-  auto_stop_machines = 'stop'
+  auto_stop_machines = "stop"
   auto_start_machines = true
-  min_machines_running = 0
-  processes = ['app']
+  min_machines_running = 1
+  [[http_service.checks]]
+    interval = "10s"
+    timeout  = "2s"
+    method   = "GET"
+    path     = "/healthz"
 
 [[vm]]
-  memory = '1gb'
-  cpu_kind = 'shared'
+  memory = "512mb"
+  cpu_kind = "shared"
   cpus = 1
+
+[[mounts]]
+  source = "uploads"
+  destination = "/data/uploads"

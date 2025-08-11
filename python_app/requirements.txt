@@ -30,3 +30,5 @@ pdfminer.six
 pandas
 ics
 PyYAML>=6.0
+pdf2image>=1.17.0
+Pillow>=10.0.0

@@ -1,6 +1,37 @@
-/.git
-/node_modules
-.dockerignore
+# Git & Versionskontrolle
+.git
+.gitignore
+
+# Python venv & Cache
+venv/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Environment-Dateien (Secrets kommen nicht ins Image)
 .env
-Dockerfile
-fly.toml
+.env.*
+python_app/.env
+python_app/.env.*
+
+# Tests & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node / Frontend
+node_modules/
+frontend/node_modules/
+dist/
+build/
+
+# Logs
+*.log
+
+# Mac & System
+.DS_Store
+
+# Docker-spezifisch
+.dockerignore
