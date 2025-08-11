@@ -1,216 +1,153 @@
-<!-- templates/event-erstellen.html -->
 {% extends "base.html" %}
 {% block title %}Event erstellen – FamilienRadar{% endblock %}
 
 {% block content %}
-<div class="min-h-[75vh] mx-auto p-20 py-12 bg-flotti-background">
-  <h1 class="text-3xl font-bold text-flotti-primary font-flotti mb-8 text-center">
+<div class="min-h-[75vh] mx-auto px-4 sm:px-8 md:p-20 py-8 sm:py-12 bg-flotti-background">
+  <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-flotti-primary font-flotti mb-6 sm:mb-8 text-center">
     Event erstellen
   </h1>
 
   <!-- Auswahl: Manuell vs. Upload -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="choiceBox">
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6" id="choiceBox">
+    <button id="startManual" type="button"
+      class="h-48 sm:h-64 rounded-2xl bg-flotti-accent text-flotti-primary p-6 sm:p-8 flex flex-col items-center justify-center shadow-md hover:bg-flotti-accent transition w-full">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 sm:h-16 sm:w-16 mb-3 sm:mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <span class="text-base sm:text-lg font-semibold">Manuell anlegen</span>
+    </button>
 
-  <!-- Manuell anlegen -->
-  <button id="startManual" class="h-64 rounded-2xl bg-flotti-accent text-flotti-primary p-8 flex flex-col items-center justify-center shadow-md hover:bg-flotti-accent transition">
-    <!-- ➕ Icon: Heroicons "Plus Circle" -->
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-    <span class="text-lg font-semibold">Manuell anlegen</span>
-  </button>
+    <label for="ocrUpload"
+      class="cursor-pointer h-48 sm:h-64 rounded-2xl bg-flotti-primary text-white p-6 sm:p-8 flex flex-col items-center justify-center shadow-md hover:bg-flotti-accent transition w-full">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 sm:h-16 sm:w-16 mb-3 sm:mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h2l2-3h10l2 3h2a2 2 0 012 2v10a2 2 0 01-2 2H3a2 2 0 01-2-2V9a2 2 0 012-2z"/>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 13a3 3 0 100-6 3 3 0 000 6z"/>
+      </svg>
+      <span class="text-base sm:text-lg font-semibold text-center">Foto von Plakat hochladen</span>
+      <input type="file" id="ocrUpload" accept="image/*,application/pdf" class="hidden" />
+    </label>
+  </div>
 
-  <!-- Foto/Upload -->
-  <label for="ocrUpload" class="cursor-pointer h-64 rounded-2xl bg-flotti-primary text-flotti-white p-8 flex flex-col items-center justify-center shadow-md hover:bg-flotti-accent transition">
-    <!-- 📷 Icon: Heroicons "Camera" -->
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M3 7h2l2-3h10l2 3h2a2 2 0 012 2v10a2 2 0 01-2 2H3a2 2 0 01-2-2V9a2 2 0 012-2z" />
-      <path stroke-linecap="round" stroke-linejoin="round" d="M12 13a3 3 0 100-6 3 3 0 000 6z" />
-    </svg>
-    <span class="text-lg font-semibold">Foto von Plakat hochladen</span>
-    <input type="file" id="ocrUpload" name="file" accept="image/*,application/pdf" class="hidden" />
-  </label>
+  <!-- Formular -->
+  <form id="eventForm" method="POST" action="/event-erstellen" enctype="multipart/form-data" class="mt-8 sm:mt-12 hidden">
 
-</div>
-
-
-  <!-- Schrittweises Formular -->
-  <form id="eventForm" method="POST" action="/event-erstellen" class="mt-12 hidden">
+    <!-- Schritt 1 -->
     <div class="step" data-step="1">
       <label class="block text-flotti-primary font-semibold mb-2">Event-Titel</label>
-      <input type="text" name="title" required class="w-full p-3 rounded-lg border border-gray-300 mb-6">
+      <input type="text" id="title" name="title" required class="w-full p-3 rounded-lg border border-gray-300 mb-6">
     </div>
 
+    <!-- Schritt 2 -->
     <div class="step hidden" data-step="2">
       <label class="block text-flotti-primary font-semibold mb-2">Datum</label>
-      <input type="date" name="date" required class="w-full p-3 rounded-lg border border-gray-300 mb-6">
+      <input type="date" id="date" name="date" required class="w-full p-3 rounded-lg border border-gray-300 mb-6">
     </div>
 
+    <!-- Schritt 3 -->
     <div class="step hidden" data-step="3">
       <label class="block text-flotti-primary font-semibold mb-2">Ort</label>
-      <input type="text" name="location" required class="w-full p-3 rounded-lg border border-gray-300 mb-6">
+      <input type="text" id="location" name="location" required class="w-full p-3 rounded-lg border border-gray-300 mb-6">
     </div>
 
+    <!-- Schritt 4 -->
     <div class="step hidden" data-step="4">
       <label class="block text-flotti-primary font-semibold mb-2">Beschreibung</label>
-      <textarea name="description" rows="4" class="w-full p-3 rounded-lg border border-gray-300 mb-6"></textarea>
+      <textarea id="description" name="description" rows="4" class="w-full p-3 rounded-lg border border-gray-300 mb-6"></textarea>
     </div>
 
-    <div class="mt-6 flex justify-between">
-      <button type="button" id="prevStep" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg">Zurück</button>
-      <button type="button" id="nextStep" class="px-4 py-2 bg-flotti-primary text-flotti-white rounded-lg">Weiter</button>
-      <button type="submit" id="submitEvent" class="hidden px-4 py-2 bg-flotti-primary text-flotti-primary rounded-lg">Event speichern</button>
-    </div>
-      <!-- Zusammenfassung und Abschluss -->
-  <div id="eventSummary" class="hidden mt-12">
-    <h2 class="text-xl font-bold text-flotti-white mb-4">Zusammenfassung</h2>
-    <div class="bg-flotti-background p-6 rounded-xl shadow">
-      <p><strong>Titel:</strong> <span id="summaryTitle"></span></p>
-      <p><strong>Datum:</strong> <span id="summaryDate"></span></p>
-      <p><strong>Ort:</strong> <span id="summaryLocation"></span></p>
-      <p><strong>Beschreibung:</strong> <span id="summaryDescription"></span></p>
+    <!-- Upload-Bild -->
+    <div class="mt-4 sm:mt-6 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+      <label for="summaryUpload" class="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-flotti-primary text-white rounded-lg shadow hover:bg-flotti-accent w-full sm:w-auto justify-center">
+        📎 Bild hinzufügen
+        <input type="file" id="summaryUpload" name="summary_file" class="hidden" />
+      </label>
+      <div id="previewImage" class="w-24 h-24 sm:w-16 sm:h-16 rounded overflow-hidden hidden border border-gray-300">
+        <img src="" alt="Vorschau" class="w-full h-full object-cover" />
+      </div>
     </div>
 
-    <div class="mt-6 flex items-center gap-4">
-  <label for="summaryUpload" class="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-flotti-primary text-flotti-primary rounded-lg shadow hover:bg-flotti-accent">
-    📎 Bild hinzufügen
-    <input type="file" id="summaryUpload" name="summary_file" class="hidden" />
-  </label>
-  <div id="previewImage" class="w-16 h-16 rounded overflow-hidden hidden border border-gray-300">
-    <img src="" alt="Vorschau" class="w-full h-full object-cover" />
-  </div>
-</div>
-
-
-    <div class="mt-6 text-right">
-      <button class="px-6 py-3 bg-flotti-primary text-flotti-primary font-bold rounded-lg hover:bg-flotti-accent">
-        Aktion freigeben
-      </button>
+    <!-- Navigation -->
+    <div class="mt-8 sm:mt-6 flex flex-col sm:flex-row justify-between gap-3 sm:gap-0 sm:sticky sm:bottom-0 bg-flotti-background sm:bg-transparent py-2">
+      <button type="button" id="prevStep" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg w-full sm:w-auto">Zurück</button>
+      <button type="button" id="nextStep" class="px-4 py-2 bg-flotti-primary text-white rounded-lg w-full sm:w-auto">Weiter</button>
+      <button type="submit" id="submitEvent" class="hidden px-4 py-2 bg-flotti-primary text-white rounded-lg w-full sm:w-auto">Event speichern</button>
     </div>
   </form>
-  </div>
 </div>
 
 <script>
-  const startBtn = document.getElementById("startManual");
-  const form = document.getElementById("eventForm");
-  const steps = form.querySelectorAll(".step");
-  const nextBtn = document.getElementById("nextStep");
-  const prevBtn = document.getElementById("prevStep");
-  const submitBtn = document.getElementById("submitEvent");
-  const summaryBox = document.getElementById("eventSummary");
-  const choiceBox = document.getElementById("choiceBox");
-  const uploadInput = document.getElementById("summaryUpload");
-  const previewContainer = document.getElementById("previewImage");
-  const previewImage = previewContainer?.querySelector("img");
-  const ocrUpload = document.getElementById("ocrUpload");
-  let currentStep = 0;
+const choiceBox = document.getElementById("choiceBox");
+const form = document.getElementById("eventForm");
+const steps = form.querySelectorAll(".step");
+let currentStep = 0;
 
-  // 🟢 Manuell starten
-  startBtn?.addEventListener("click", () => {
-    form.classList.remove("hidden");
-    steps[0].classList.remove("hidden");
-    choiceBox.classList.add("hidden");
-  });
+document.getElementById("startManual")?.addEventListener("click", () => {
+  form.classList.remove("hidden");
+  steps[0].classList.remove("hidden");
+  choiceBox.classList.add("hidden");
+});
 
-  // 🔁 Schritt vor/zurück
-  nextBtn?.addEventListener("click", () => {
-    if (currentStep < steps.length - 1) {
-      steps[currentStep].classList.add("hidden");
-      currentStep++;
-      steps[currentStep].classList.remove("hidden");
-    }
-    updateButtons();
-  });
-
-  prevBtn?.addEventListener("click", () => {
-    if (currentStep > 0) {
-      steps[currentStep].classList.add("hidden");
-      currentStep--;
-      steps[currentStep].classList.remove("hidden");
-    }
-    updateButtons();
-  });
-
-  function updateButtons() {
-    nextBtn.classList.toggle("hidden", currentStep >= steps.length - 1);
-    submitBtn.classList.toggle("hidden", currentStep < steps.length - 1);
+document.getElementById("nextStep")?.addEventListener("click", () => {
+  if (currentStep < steps.length - 1) {
+    steps[currentStep].classList.add("hidden");
+    steps[++currentStep].classList.remove("hidden");
   }
-
-  // 🧾 Zusammenfassung anzeigen
-  submitBtn?.addEventListener("click", (e) => {
-    e.preventDefault();
-    form.classList.add("hidden");
-    summaryBox.classList.remove("hidden");
-
-    // Zusammenfassung ausfüllen
-    document.getElementById("summaryTitle").textContent = form.title.value;
-    document.getElementById("summaryDate").textContent = form.date.value;
-    document.getElementById("summaryLocation").textContent = form.location.value;
-    document.getElementById("summaryDescription").textContent = form.description.value;
-
-    // Hidden Inputs an Summary-Form anhängen
-    const summaryForm = summaryBox.querySelector("form");
-    summaryForm.innerHTML += `
-      <input type="hidden" name="title" value="${form.title.value}">
-      <input type="hidden" name="date" value="${form.date.value}">
-      <input type="hidden" name="location" value="${form.location.value}">
-      <input type="hidden" name="description" value="${form.description.value}">
-    `;
-  });
-
-  // 📷 Bildvorschau bei Upload (Zusammenfassung)
-  uploadInput?.addEventListener("change", (e) => {
-    const file = e.target.files[0];
-    if (!file || !previewImage || !previewContainer) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      previewImage.src = event.target.result;
-      previewContainer.classList.remove("hidden");
-    };
-    reader.readAsDataURL(file);
-  });
-
-  // 🔍 OCR Upload → Formular befüllen
-  ocrUpload?.addEventListener("change", async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const res = await fetch("/ocr-upload", {
-      method: "POST",
-      body: formData
-    });
-
-    const data = await res.json();
-    if (!data || !data.title) return alert("OCR konnte keine Daten erkennen.");
-
-    // Formular anzeigen & befüllen
-    choiceBox.classList.add("hidden");
-    form.classList.remove("hidden");
-    steps.forEach((step) => step.classList.add("hidden"));
-    steps[0].classList.remove("hidden");
-
-    form.title.value = data.title || "";
-    form.date.value = formatDate(data.date || "");
-    form.location.value = data.location || "";
-    form.description.value = data.description || "";
-
-    currentStep = 0;
-    updateButtons();
-  });
-
-  // 📅 Datum formatieren
-  function formatDate(input) {
-    const parts = input.match(/\d+/g);
-    if (parts?.length === 3) {
-      const [d, m, y] = parts;
-      return `${y.length === 2 ? "20" + y : y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
-    }
-    return "";
+  updateButtons();
+});
+document.getElementById("prevStep")?.addEventListener("click", () => {
+  if (currentStep > 0) {
+    steps[currentStep].classList.add("hidden");
+    steps[--currentStep].classList.remove("hidden");
   }
+  updateButtons();
+});
+function updateButtons() {
+  document.getElementById("nextStep").classList.toggle("hidden", currentStep >= steps.length - 1);
+  document.getElementById("submitEvent").classList.toggle("hidden", currentStep < steps.length - 1);
+}
+
+// OCR Upload
+document.getElementById("ocrUpload")?.addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const fd = new FormData();
+  fd.append("file", file);
+  const res = await fetch("/ocr-upload", { method: "POST", body: fd });
+  const data = await res.json();
+  if (data.error) return alert("OCR-Fehler: " + data.error);
+
+  choiceBox.classList.add("hidden");
+  form.classList.remove("hidden");
+  steps.forEach((s, i) => s.classList.toggle("hidden", i !== 0));
+  currentStep = 0;
+  updateButtons();
+
+  document.getElementById("title").value = data.title || "";
+  document.getElementById("date").value = formatDate(data.date || "");
+  document.getElementById("location").value = data.location || "";
+  document.getElementById("description").value = data.description || "";
+});
+
+// Vorschau-Bild
+document.getElementById("summaryUpload")?.addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  const preview = document.querySelector("#previewImage img");
+  preview.src = url;
+  document.getElementById("previewImage").classList.remove("hidden");
+});
+
+// Hilfsfunktion Datum
+function formatDate(input) {
+  const parts = input.match(/\d+/g);
+  if (parts?.length === 3) {
+    const [y, m, d] = parts.length === 3 && input.includes("-")
+      ? parts
+      : [parts[2], parts[1], parts[0]];
+    return `${y.length === 2 ? "20" + y : y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+  }
+  return "";
+}
 </script>
-
 {% endblock %}
