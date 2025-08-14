@@ -8,23 +8,17 @@ from sqlalchemy import (
     Float,
     create_engine,
 )
+from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 from flask_login import UserMixin
 from dotenv import load_dotenv
+from db import Base
 
 # 🔁 .env laden
 load_dotenv()
-
-# 🧱 Base definieren
-Base = declarative_base()
-
-# 📦 Datenbank-Verbindung
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///events.db")
-engine = create_engine(DATABASE_URL)
-Session = sessionmaker(bind=engine)
 
 
 # 🗂 Event-Modell
@@ -46,7 +40,11 @@ class Event(Base):
     price = Column(Float)
     is_free = Column(Boolean)
     is_outdoor = Column(Boolean)
+    is_always_open = Column(Boolean, default=False)
     age_group = Column(String)
+    is_always_open = Column(Boolean, default=False)
+    opening_hours = Column(JSON, nullable=True)
+    holidays_closed = Column(JSON, nullable=True)
 
 
 # 📚 Quellen-Modell

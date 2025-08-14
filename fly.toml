@@ -1,16 +1,23 @@
- app = "veranstaltungs-crawler-frosty-cloud-8887"
+app = "veranstaltungs-crawler-frosty-cloud-8887"
 primary_region = "ams"
 
 [build]
   dockerfile = "Dockerfile"
   context = "."
 
+[env]
+  PORT = "8080"
+  FLASK_ENV = "production"
+  UPLOAD_DIR = "/data/uploads"   # <- wichtig wegen Mount
+
 [http_service]
   internal_port = 8080
   force_https = true
-  auto_stop_machines = "stop"
+  auto_stop_machines = true
   auto_start_machines = true
   min_machines_running = 1
+  processes = ["app"]
+
   [[http_service.checks]]
     interval = "10s"
     timeout  = "2s"

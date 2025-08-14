@@ -1,0 +1,51 @@
+# Immer-verfügbar-Standorte mit optionalen Saison- oder Feiertagsausnahmen
+locations:
+  - name: "Naturkundemuseum"
+    match:
+      - "Naturkundemuseum Aachen"
+      - "Museum für Naturkunde Aachen"
+    always_open: true
+    opening_hours:
+      monday: "10:00-18:00"
+      tuesday: "10:00-18:00"
+      wednesday: "geschlossen"
+      thursday: "10:00-18:00"
+      friday: "10:00-18:00"
+      saturday: "11:00-17:00"
+      sunday: "11:00-17:00"
+    holidays_closed: ["12-24", "12-25", "12-26", "01-01"]
+
+  - name: "Minigolf im Kurpark"
+    match:
+      - "Kurpark Minigolf"
+      - "Minigolf Kurpark"
+    always_open: false
+    season:
+      start: "04-01"   # 1. April
+      end: "10-31"     # 31. Oktober
+    opening_hours:
+      monday: "geschlossen"
+      tuesday: "14:00-20:00"
+      wednesday: "14:00-20:00"
+      thursday: "14:00-20:00"
+      friday: "14:00-20:00"
+      saturday: "10:00-20:00"
+      sunday: "10:00-20:00"
+    holidays_closed: ["05-01", "12-24", "12-25", "12-26"]
+
+  - name: "Eissporthalle XYZ"
+    match:
+      - "Eishalle XYZ"
+    always_open: false
+    season:
+      start: "10-01"
+      end: "03-31"
+    opening_hours:
+      monday: "geschlossen"
+      tuesday: "15:00-21:00"
+      wednesday: "15:00-21:00"
+      thursday: "15:00-21:00"
+      friday: "15:00-21:00"
+      saturday: "10:00-20:00"
+      sunday: "10:00-20:00"
+    holidays_closed: ["12-24", "12-25", "01-01"]

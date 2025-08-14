@@ -1,0 +1,17 @@
+# python_app/crawler/sources.yaml
+sources:
+  - name: kingkalli
+    enabled: true
+    base: "https://kingkalli.de"
+    start_url: "https://kingkalli.de/events/"
+    headers:
+      User-Agent: "familysout-crawler/1.0 (+https://www.familysout.de)"
+    max_pages: 10
+
+  - name: kaenguru
+    enabled: true
+    base: "https://www.kaenguru-online.de/"
+    start_url: "https://www.kaenguru-online.de/kalender"
+    headers:
+      User-Agent: "familysout-crawler/1.0 (+https://www.familysout.de)"
+    max_pages: 10
